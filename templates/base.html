@@ -1,0 +1,35 @@
+<html>
+<header>
+    <script src="/static/js/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/semantic.min.css">
+    <script src="/static/js/semantic.min.js"></script>
+    {%- block header %}
+
+    {% endblock -%}
+</header>
+<div class="ui secondary pointing menu">
+    <a class="item" href="/">
+        Home
+    </a>
+    <a class="item{% if 'ordering' in request.endpoint %} active{% endif %}" href="{{ url_for('ordering.landing') }}">
+        Food
+    </a>
+    <a class="item{% if 'weight' in request.endpoint %} active{% endif %}" href="{{ url_for('weight.landing') }}">
+        Weight
+    </a>
+</div>
+<div class="ui segment">
+    <p>
+        {%- block content %}
+
+        {% endblock -%}
+    </p>
+</div>
+
+
+<footer>
+    {%- block footer %}
+
+    {% endblock -%}
+</footer>
+</html>

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script>
+        $(document).ready(function () {
+            $('.ui.rating').rating({
+                onRate: function (value) {
+                    const order_item_id = $(this).data('order-item-id');
+                    $.ajax({
+                        url: `{{ url_for("ordering.rate") }}/${order_item_id}`,
+                        type: 'POST',
+                        data: {
+                            rating: value
+                        },
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <table class="ui celled table">
+        <thead>
+        <tr>
+            <th>Item</th>
+            <th>Rating</th>
+            <th>Last Ordered</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for suggestion in suggestions %}
+            <tr>
+                <td>
+                    <b>{{ suggestion.name }}</b> from <b>{{ suggestion.restaurant_name }}</b>
+                </td>
+                <td>
+                    <div class="ui yellow disabled rating" data-icon="star" data-rating="{{ suggestion.rating }}"
+                         data-max-rating="5" data-order-item-id="{{ suggestion.id }}"></div>
+                </td>
+                <td>
+                    {{ suggestion.last_order }}
+                </td>
+                <td>
+                    ${{ suggestion.last_price }}
+                    {% if suggestion.min_price < suggestion.last_price %}
+                        ,&nbsp;${{ suggestion.min_price }} minimum
+                    {% endif %}
+                    {% if suggestion.max_price > suggestion.last_price %}
+                        ,&nbsp;${{ suggestion.max_price }} maximum
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    To Rate
+    <table class="ui celled selectable table">
+        <thead>
+        <tr>
+            <th>Order Item</th>
+            <th>Rate</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order_item in order_items %}
+            <tr>
+                <td>
+                    {{ order_item.name }} from {{ order_item.restaurant_name }}, ${{ order_item.last_price }}
+                </td>
+                <td>
+                    <div class="ui yellow rating" data-icon="star" data-max-rating="5"
+                         data-order-item-id="{{ order_item.id }}"></div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <table class="ui celled table">
+        <thead>
+        <tr>
+            <th>Restaurant</th>
+            <th>Rating</th>
+            <th>Orders</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for restaurant in restaurants %}
+            <tr>
+                <td>{{ restaurant.name }}</td>
+                <td>{{ restaurant.rating }}</td>
+                <td>
+                    {% for order in restaurant.orders %}
+                        <b>{{ order.date }}</b><br>
+                        {% for item in order.meals %}
+                            {{ item.name }}
+                            <div class="ui yellow rating" data-icon="star" data-rating="{{ item.rating }}"
+                                 data-max-rating="5" data-order-item-id="{{ item.id }}"></div>
+                            ,&nbsp;
+                        {% endfor %}
+                        <br>
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="ui modal">
+        <div class="header">Header</div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>First Name</label>
+                    <input type="text" name="first-name" placeholder="First Name">
+                </div>
+                <div class="field">
+                    <label>Last Name</label>
+                    <input type="text" name="last-name" placeholder="Last Name">
+                </div>
+                <div class="field">
+                    <div class="ui checkbox">
+                        <input type="checkbox" tabindex="0" class="hidden">
+                        <label>I agree to the Terms and Conditions</label>
+                    </div>
+                </div>
+                <button class="ui button" type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

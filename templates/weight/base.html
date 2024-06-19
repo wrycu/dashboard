@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script src="{{ url_for('static', filename='js/apexcharts.js') }}"></script>
+    <script>
+        $(document).ready(function () {
+            $('.ui.calendar').calendar({
+                type: 'date',
+                formatter: {
+                    date: 'YYYY-MM-DD',
+                },
+            });
+            $('.submit_weight').api({
+                url: '{{ url_for("weight.records") }}',
+                method: 'POST',
+                serializeForm: true,
+                action: 'submit weight',
+                onSuccess: function (response, element, xhr) {
+                    // valid response and response.success = true
+                    location.reload();
+                },
+            });
+            $('.delete_weight').api({
+                url: '{{ url_for("weight.records") }}/{id}',
+                method: 'DELETE',
+                action: 'delete weight',
+                onSuccess: function (response, element, xhr) {
+                    // valid response and response.success = true
+                    location.reload();
+                },
+            });
+
+            // render the charts
+            var options = {
+                series: [{
+                    name: "Weight",
+                    data: [
+                        {% for record in records %}
+                            {{ record.weight }},
+                        {% endfor %}
+                    ]
+                }],
+                chart: {
+                    height: 350,
+                    type: 'line',
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'straight'
+                },
+                title: {
+                    text: 'Weight Over Time',
+                    align: 'left'
+                },
+                grid: {
+                    row: {
+                        colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                        opacity: 0.5
+                    },
+                },
+                xaxis: {
+                    categories: [
+                        {% for record in records %}
+                            '{{ record.date }}',
+                        {% endfor %}
+                    ],
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+
+            var options = {
+                series: [{
+                    name: "Average Weight",
+                    data: [
+                        {% for record in rolling_averages.avgs %}
+                            {{ record }},
+                        {% endfor %}
+                    ]
+                }],
+                chart: {
+                    height: 350,
+                    type: 'line',
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'straight'
+                },
+                title: {
+                    text: 'Weekly Average Weight',
+                    align: 'left'
+                },
+                grid: {
+                    row: {
+                        colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                        opacity: 0.5
+                    },
+                },
+                xaxis: {
+                    categories: [
+                        {% for record in rolling_averages.dates %}
+                            '{{ record }}',
+                        {% endfor %}
+                    ],
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart2"), options);
+            chart.render();
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="ui grid">
+        <div class="two column row">
+            <div class="column" id="chart"></div>
+            <div class="column" id="chart2"></div>
+        </div>
+    </div>
+    <form class="ui form">
+        <div class="field">
+            <label>Weight</label>
+            <input type="number" name="weight" placeholder="Enter Weight">
+        </div>
+        <div class="field">
+            <label>Date</label>
+            <div class="ui calendar">
+                <div class="ui input left icon">
+                    <i class="calendar icon"></i>
+                    <input type="text" placeholder="Date this weight was taken" name="date">
+                </div>
+            </div>
+        </div>
+        <div class="ui button submit_weight" data-action="submit weight">Submit</div>
+    </form>
+    <hr>
+    existing records:<br>
+    <div class="ui bulleted list">
+        {% for record in records %}
+            <div class="item">
+                {{ record.date }}: {{ record.weight }}
+                <div class="ui icon mini circular button delete_weight" data-action="delete weight"
+                     data-id="{{ record.id }}">
+                    <i class="cancel icon"></i>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
