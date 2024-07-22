@@ -8,7 +8,7 @@
     {% endblock -%}
 </header>
 <div class="ui secondary pointing menu">
-    <a class="item" href="/">
+    <a class="item{% if 'portal' in request.endpoint %} active{% endif %}" href="{{ url_for('portal.landing') }}">
         Home
     </a>
     <a class="item{% if 'ordering' in request.endpoint %} active{% endif %}" href="{{ url_for('ordering.landing') }}">

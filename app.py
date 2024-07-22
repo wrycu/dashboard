@@ -5,6 +5,7 @@ from db.model import database, create_tables
 from views.vuln_mgmt import vuln_mgmt
 from views.weight import weight
 from views.ordering import ordering
+from views.portal import portal
 
 
 app = Flask(__name__)
@@ -19,6 +20,7 @@ with app.app_context():
 app.register_blueprint(vuln_mgmt)
 app.register_blueprint(weight)
 app.register_blueprint(ordering)
+app.register_blueprint(portal)
 
 
 @app.before_request
