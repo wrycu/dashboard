@@ -76,6 +76,7 @@ def drop_nessus_tables():
 
 def create_tables():
     database.create_tables([Weight, Restaurant, Order, OrderItem, OrderMap])
+    create_nessus_tables()
 
 
 def drop_tables():
