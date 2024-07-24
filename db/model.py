@@ -55,6 +55,25 @@ class OrderMap(Model):
         database = database
 
 
+class Nessus(Model):
+    name = CharField()
+    action = CharField()      # enum: ALERT, IGNORE
+    # note that cvsss maps to PLUGIN severity, not CVE score (4 = critical, 3 = high, 2 = medium, 1 = low)
+    identifier = CharField()  # enum: <type:id>, e.g. "cve:cve-2024-11111", "cvss:4", or "pluginid:201969"
+    rationale = CharField()
+
+    class Meta:
+        database = database
+
+
+def create_nessus_tables():
+    database.create_tables([Nessus])
+
+
+def drop_nessus_tables():
+    database.drop_tables([Nessus])
+
+
 def create_tables():
     database.create_tables([Weight, Restaurant, Order, OrderItem, OrderMap])
 

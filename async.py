@@ -93,5 +93,125 @@ class FoodParser:
                     )
 
 
+class NessusAlerter:
+    def __init__(self):
+        config = json.load(open('config.json'))
+        self.base_url = config['NESSUS']['BASE_URL']
+        self.secret_key = config['NESSUS']['SECRET_KEY']
+        self.access_key = config['NESSUS']['ACCESS_KEY']
+        self.rules = self.load_rules()
+        self.alerts = []
+        self.slack = {
+            'WEBHOOK_URL': config['SLACK']['WEBHOOK_URL'],
+            'ACCESS_TOKEN': config['SLACK']['ACCESS_TOKEN'],
+        }
+
+    @staticmethod
+    def load_rules():
+        data = {
+            'alert': {
+                'cve': [],
+                'cvss': [],
+                'pluginid': [],
+            },
+            'ignore': {
+                'cve': [],
+                'cvss': [],
+                'pluginid': [],
+            },
+        }
+        for alert in model.Nessus.select().where(model.Nessus.action == 'ALERT'):
+            if alert.identifier.startswith('cve:'):
+                data['alert']['cve'].append(alert.identifier.replace('cve:', ''))
+            elif alert.identifier.startswith('cvss:'):
+                data['alert']['cvss'].append(int(alert.identifier.replace('cvss:', '')))
+            elif alert.identifier.startswith('pluginid:'):
+                data['alert']['pluginid'].append(alert.identifier.replace('pluginid:', ''))
+        for alert in model.Nessus.select().where(model.Nessus.action == 'IGNORE'):
+            if alert.identifier.startswith('cve:'):
+                data['ignore']['cve'].append(alert.identifier.replace('cve:', ''))
+            elif alert.identifier.startswith('cvss:'):
+                data['ignore']['cvss'].append(int(alert.identifier.replace('cvss:', '')))
+            elif alert.identifier.startswith('pluginid:'):
+                data['ignore']['pluginid'].append(alert.identifier.replace('pluginid:', ''))
+        return data
+
+    def make_request(self, method, endpoint='/', data=None):
+        if method == 'GET':
+            reply = httpx.get(
+                f'{self.base_url}{endpoint}',
+                headers={
+                    'X-ApiKeys': f'accessKey={self.access_key}; secretKey={self.secret_key}',
+                },
+                verify=False,
+            )
+        elif method == 'POST':
+            reply = httpx.post(
+                f'{self.base_url}{endpoint}',
+                headers={
+                    'X-ApiKeys': f'accessKey={self.access_key}; secretKey={self.secret_key}',
+                },
+                data=data,
+                verify=False,
+            )
+        else:
+            raise ValueError(f'Unsupported method {method}')
+        reply.raise_for_status()
+        return reply
+
+    def scan_and_alert(self):
+        scan_id = 29  # LAN scan
+        scan_details = self.get_scan_details(scan_id)
+        for plugin in scan_details['prioritization']['plugins']:
+            should_alert, details = self.should_alert(plugin)
+            report_link = f'{self.base_url}/#/scans/reports/{scan_id}/vulnerabilities/group/{plugin["pluginid"]}/{plugin["pluginid"]}'
+            if should_alert:
+                self.slack_notify(f'{details} - {report_link}')
+
+    def get_scan_details(self, scan_id):
+        return self.make_request('GET', f'/scans/{scan_id}').json()
+
+    def get_plugin_details(self, plugin_id):
+        return self.make_request('GET', f'/plugins/plugin/{plugin_id}').json()
+
+    def should_alert(self, plugin):
+        plugin_id = plugin['pluginid']
+        plugin_details = self.get_plugin_details(plugin_id)['attributes']
+        plugin_cves = [x['attribute_value'] for x in plugin_details if x['attribute_name'] == 'cve']
+
+        hosts = ', '.join([x['host_ip'] for x in plugin['hosts']])
+        plugin_name = plugin['pluginname']
+        known_exploit = [x['attribute_value'] for x in plugin_details if x['attribute_name'] == 'exploit_available']
+        plugin_score = plugin['severity']
+
+        # check if the plugin is explicitly ignored
+        if plugin_id in self.rules['ignore']['pluginid']:
+            return False, f"Plugin {plugin_id} explicitly ignored"
+        # check if the plugin is explicitly alerted
+        if plugin_id in self.rules['alert']['pluginid']:
+            return True, f'Found {plugin_name} on {hosts} (alerted due to plugin)'
+        # check if plugin has an alert score
+        if [x for x in self.rules['alert']['cvss'] if plugin_score >= x]:
+            return True, f'Found {plugin_name} on {hosts} (alerted due to severity)'
+        # check if plugin CVEs exist in our alert CVE list
+        if [x for x in plugin_cves if x in self.rules['alert']['cve']]:
+            return True, f'Found {plugin_name} on {hosts} (alerted due to CVE)'
+
+        return False, None
+
+    def slack_notify(self, message):
+        reply = httpx.post(
+            self.slack['WEBHOOK_URL'],
+            headers={'Content-Type': 'application/json'},
+            json={
+                'text': message,
+            },
+        )
+        reply.raise_for_status()
+
+
+nessus_scanner = NessusAlerter()
+nessus_scanner.scan_and_alert()
+
 food_parser = FoodParser()
 food_parser.get_and_insert_orders()

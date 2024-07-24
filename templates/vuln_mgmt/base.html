@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script>
+        $(document).ready(function () {
+            $('.ui.dropdown').dropdown();
+            $('.submit_alert').api({
+                url: '{{ url_for("vuln_mgmt.records") }}',
+                method: 'POST',
+                serializeForm: true,
+                action: 'submit alert',
+                onSuccess: function (response, element, xhr) {
+                    // valid response and response.success = true
+                    location.reload();
+                },
+            });
+            $('.delete_alert').api({
+                url: '{{ url_for("vuln_mgmt.records") }}/{id}',
+                method: 'DELETE',
+                action: 'delete alert',
+                onSuccess: function (response, element, xhr) {
+                    location.reload();
+                },
+            });
+        });
+    </script>
+{% endblock %}
+{% block content %}
+    <br>
+        <div class="ui grid">
+        <div class="two column row">
+            <div class="column" id="chart"></div>
+            <div class="column" id="chart2"></div>
+        </div>
+    </div>
+    <form class="ui form">
+        <div class="field">
+            <label>Name</label>
+            <input type="text" name="name" placeholder="Name of alert">
+        </div>
+        <div class="field">
+            <label>Action</label>
+            <div class="ui selection dropdown">
+                <input type="hidden" name="action">
+                <div class="default text">Alert</div>
+                <div class="scrollhint menu">
+                    <div class="item" data-value="ALERT">Alert</div>
+                    <div class="item" data-value="IGNORE">Ignore</div>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label>Identifier</label>
+            <input type="text" name="identifier" placeholder="Format must be cve:<cve>, cvss:<int>, or pluginid:<int>">
+        </div>
+        <div class="field">
+            <label>Rationale</label>
+            <input type="text" name="rationale" placeholder="Reasoning for creating this alert">
+        </div>
+        <div class="ui button submit_alert" data-action="submit alert">Submit</div>
+    </form>
+    <hr>
+    existing records:<br>
+    <div class="ui bulleted list">
+        {% for record in alerts %}
+            <div class="item">
+                <b>{{ record.action }}:</b> {{ record.name }}: {{ record.identifier }} ({{ record.action }} / {{ record.rationale }})
+                <div class="ui icon mini circular button delete_alert" data-action="delete alert"
+                     data-id="{{ record.id }}">
+                    <i class="cancel icon"></i>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

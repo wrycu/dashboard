@@ -11,6 +11,9 @@
     <a class="item{% if 'portal' in request.endpoint %} active{% endif %}" href="{{ url_for('portal.landing') }}">
         Home
     </a>
+    <a class="item{% if 'vuln' in request.endpoint %} active{% endif %}" href="{{ url_for('vuln_mgmt.landing') }}">
+        Alerting
+    </a>
     <a class="item{% if 'ordering' in request.endpoint %} active{% endif %}" href="{{ url_for('ordering.landing') }}">
         Food
     </a>
