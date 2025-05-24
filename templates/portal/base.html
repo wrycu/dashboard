@@ -1,131 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="ui cards">
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://mealie.wrycu.com/favicon.ico">
-                <div class="header">
-                    Mealie
-                </div>
-                <div class="description">
-                    Recipe book, meal prep helper
-                </div>
+<div class="ui cards">
+{% for site in sites %}
+    <div class="card">
+        <div class="content">
+            <img class="right floated mini ui image" src="{{ site.fav_ico }}">
+            <div class="header">
+                {{ site.name }}
             </div>
-            <div class="extra content">
-                <a href="https://mealie.wrycu.com/">Open</a>
+            <div class="description">
+                {{ site.description }}
             </div>
         </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://documents.wrycu.com/favicon.ico">
-                <div class="header">
-                    Paperless-NGX
-                </div>
-                <div class="description">
-                    Document management system
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://documents.wrycu.com/">Open</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://tesla.wrycu.com/favicon.ico">
-                <div class="header">
-                    Teslamate
-                </div>
-                <div class="description">
-                    Tesla Model 3 stats
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://tesla.wrycu.com/">Open</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://dns.wrycu.com/admin/img/favicons/favicon.ico">
-                <div class="header">
-                    Pi-hole
-                </div>
-                <div class="description">
-                    DNS, DNS black hole, ad blocking
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://dns.wrycu.com/admin/">Open</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://plex.wrycu.com/favicon.ico">
-                <div class="header">
-                    Plex
-                </div>
-                <div class="description">
-                    Stream movies and TV shows (from server)
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://plex.wrycu.com/">Open</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://nessus.wrycu.com/favicon.ico">
-                <div class="header">
-                    Nessus
-                </div>
-                <div class="description">
-                    Vuln Mgmt (free edition)
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://nessus.wrycu.com/">Open</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://wiki.wrycu.com/static/img/otter-favicon.png">
-                <div class="header">
-                    Wiki
-                </div>
-                <div class="description">
-                    Note taking / sharing
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://wiki.wrycu.com">Open</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://swrpg.wrycu.com/icons/vtt-512.png">
-                <div class="header">
-                    Foundry
-                </div>
-                <div class="description">
-                    TTRPG platform
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://swrpg.wrycu.com">Open</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="content">
-                <img class="right floated mini ui image" src="https://monica.wrycu.com/img/monica.svg">
-                <div class="header">
-                    Monica
-                </div>
-                <div class="description">
-                    Relationship management software
-                </div>
-            </div>
-            <div class="extra content">
-                <a href="https://monica.wrycu.com/">Open</a>
-            </div>
+         <div class="extra content">
+            <a href="{{ site.url }}">Open</a>
         </div>
     </div>
+{% endfor %}
+</div>
 {% endblock %}
